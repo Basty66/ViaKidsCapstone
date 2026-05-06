@@ -1,0 +1,21 @@
+export const StatCard = ({ label, value, icon, color = 'text-white', bg = 'bg-slate-500/20', trend, subtitle, onClick }) => {
+    const Card = (
+        <div className={`bg-white/5 border border-white/10 p-5 rounded-2xl backdrop-blur-md transition-all duration-300 ${onClick ? 'hover:bg-white/10 cursor-pointer hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/5 active:scale-[0.98]' : ''}`}>
+            <div className="flex items-start justify-between">
+                <div>
+                    <p className="text-white/50 text-xs uppercase tracking-wider font-bold">{label}</p>
+                    <h2 className={`text-3xl font-bold mt-2 ${color}`}>{value}</h2>
+                    {subtitle && <p className="text-slate-500 text-xs mt-1">{subtitle}</p>}
+                </div>
+                <div className={`p-3 rounded-xl ${bg} shrink-0`}>{icon}</div>
+            </div>
+            {trend && (
+                <div className={`mt-3 text-xs font-bold flex items-center gap-1 ${trend.up ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {trend.up ? '↑' : '↓'} {trend.value}
+                    <span className="text-slate-500 font-normal">vs ayer</span>
+                </div>
+            )}
+        </div>
+    );
+    return onClick ? <div onClick={onClick}>{Card}</div> : Card;
+};
