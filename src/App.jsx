@@ -46,7 +46,18 @@ const ProtectedRoute = ({ children, allowedRole }) => {
 };
 
 const AppContent = ({ splashDone }) => {
-    const { user } = useAuth();
+    const { user, loading } = useAuth();
+
+    if (splashDone && loading) {
+        return (
+            <div className="h-screen bg-slate-950 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-slate-400 animate-pulse text-sm">Iniciando sesión...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <ErrorBoundary>
