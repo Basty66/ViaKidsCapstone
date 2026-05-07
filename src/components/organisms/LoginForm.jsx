@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { mockApi } from '../../services/api';
+import { apiService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { Bus, Shield, GraduationCap, Mail, Lock, Loader2, CheckCircle2, ArrowRight } from 'lucide-react';
 
@@ -52,7 +52,7 @@ export const LoginForm = () => {
         setGlobalError('');
         setSelectedRole(role);
         try {
-            const response = await mockApi.login(email, password);
+            const response = await apiService.login(email, password);
 
             setTransitionState('validating');
             setTransitionProgress(0);
@@ -80,7 +80,8 @@ export const LoginForm = () => {
         } catch (error) {
             setTransitionState(null);
             setSelectedRole(null);
-            setGlobalError(error.message || 'Credenciales incorrectas.');
+            const msg = error.response?.data?.message || error.response?.data?.error || 'Credenciales incorrectas.';
+            setGlobalError(msg);
             setTransitionProgress(0);
         }
     };

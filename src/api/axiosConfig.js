@@ -1,47 +1,27 @@
 import axios from 'axios';
 
-// 1. Creamos la instancia base de Axios
 const api = axios.create({
-    // URL base de tu backend local. Cuando despliegues en Railway/Render, la cambiarás aquí.
-    baseURL: 'http://localhost:3000/api',
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    // Opcional: un tiempo de espera máximo (ej: 10 segundos) por si el servidor se cuelga
-    timeout: 10000,
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
+    headers: { 'Content-Type': 'application/json' },
+    timeout: 15000,
 });
 
-// 2. Interceptor de Peticiones (Request)
-// Esto se ejecuta ANTES de que cualquier petición salga hacia el backend
-api.interceptors.request.use(
-    (config) => {
-        // Buscamos el token JWT que guardamos en el localStorage al hacer login
-        const token = localStorage.getItem('token');
-
-        // Si existe el token, lo inyectamos en las cabeceras de autorización
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('viakids_token_v3');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
     }
-);
+    return config;
+}, (error) => Promise.reject(error));
 
-// 3. Interceptor de Respuestas (Response) - Opcional pero muy profesional
-// Esto atrapa respuestas globales del backend antes de que lleguen a tus componentes
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        // Si el backend responde con un 401 (No autorizado) porque el token expiró
-        if (error.response && error.response.status === 401) {
-            console.warn("Sesión expirada o token inválido. Redirigiendo al login...");
-            // Aquí podrías limpiar el localStorage y redirigir al usuario al Login
-            // localStorage.removeItem('token');
-            // localStorage.removeItem('userRole');
-            // window.location.href = '/'; 
+        if (error.response?.status === 401) {
+            localStorage.removeItem('viakids_token_v3');
+            localStorage.removeItem('viakids_role_v3');
+            localStorage.removeItem('viakids_name_v3');
+            window.location.href = '/';
         }
         return Promise.reject(error);
     }
