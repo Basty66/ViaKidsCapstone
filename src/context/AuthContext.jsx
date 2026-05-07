@@ -11,31 +11,26 @@ const cleanOldStorage = () => {
     oldKeys.forEach(k => localStorage.removeItem(k));
 };
 
+// Read auth state synchronously from localStorage
+const getInitialUser = () => {
+    cleanOldStorage();
+    const token = localStorage.getItem(TOKEN_KEY);
+    const role = localStorage.getItem(ROLE_KEY);
+    const name = localStorage.getItem(NAME_KEY);
+
+    if (token && role) {
+        return { token, role, name: name || role };
+    }
+    return null;
+};
+
 const AuthContext = createContext(null);
 
 export const getStorageKeys = () => ({ TOKEN_KEY, ROLE_KEY, NAME_KEY });
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        cleanOldStorage();
-
-        const token = localStorage.getItem(TOKEN_KEY);
-        const role = localStorage.getItem(ROLE_KEY);
-        const name = localStorage.getItem(NAME_KEY);
-
-        if (token && role) {
-            setUser({ token, role, name: name || role });
-        } else {
-            localStorage.removeItem(TOKEN_KEY);
-            localStorage.removeItem(ROLE_KEY);
-            localStorage.removeItem(NAME_KEY);
-        }
-
-        setLoading(false);
-    }, []);
+    // Initialize synchronously — no white screen gap
+    const [user, setUser] = useState(getInitialUser);
 
     const login = (userData) => {
         localStorage.setItem(TOKEN_KEY, userData.token);
@@ -51,8 +46,21 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
+    // Double-check storage on mount (for cases where browser restored state)
+    useEffect(() => {
+        const token = localStorage.getItem(TOKEN_KEY);
+        const role = localStorage.getItem(ROLE_KEY);
+        const name = localStorage.getItem(NAME_KEY);
+
+        if (token && role) {
+            setUser({ token, role, name: name || role });
+        } else {
+            setUser(null);
+        }
+    }, []);
+
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, logout }}>
             {children}
         </AuthContext.Provider>
     );
