@@ -57,14 +57,17 @@ export const AdminDashboard = () => {
         <DashboardLayout>
             <div className="space-y-6 animate-fade-in">
                 {/* Welcome Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center glass p-6 md:p-8 rounded-3xl gap-4 animate-fade-in-up">
-                    <div>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center glass p-6 md:p-8 rounded-3xl gap-4 animate-fade-in-up relative overflow-hidden">
+                    {/* Subtle background glow */}
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/5 rounded-full blur-[60px]" />
+
+                    <div className="relative z-10">
                         <h1 className="text-2xl md:text-3xl font-bold text-white">
                             Buenos {currentTime.getHours() < 12 ? 'días' : currentTime.getHours() < 18 ? 'tardes' : 'noches'} 👋
                         </h1>
                         <p className="text-slate-400 mt-1">Resumen operativo de ViaKids</p>
                     </div>
-                    <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-2.5 rounded-xl text-sm font-semibold">
+                    <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-2.5 rounded-xl text-sm font-semibold relative z-10">
                         <Clock size={16} />
                         {currentTime.toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' })}
                         <span className="text-blue-300">•</span>
@@ -150,11 +153,11 @@ export const AdminDashboard = () => {
                         </h2>
                         <div className="space-y-3">
                             {buses.map((bus, i) => (
-                                <div key={bus.id} className="flex items-center justify-between bg-slate-900/50 p-4 rounded-2xl border border-white/5 hover:border-white/10 transition-all" style={{ animationDelay: `${i * 0.1}s` }}>
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${bus.estado === 'En Ruta' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
-                                            <Bus size={18} />
-                                        </div>
+                        <div key={bus.id} className="flex items-center justify-between bg-slate-900/50 p-4 rounded-2xl border border-white/5 hover:border-white/10 transition-all cursor-pointer group hover:bg-slate-800/50" style={{ animationDelay: `${i * 0.1}s` }}>
+                            <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 ${bus.estado === 'En Ruta' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                                    <Bus size={18} />
+                                </div>
                                         <div>
                                             <p className="text-white font-bold text-sm">{bus.patente}</p>
                                             <p className="text-slate-400 text-xs">{bus.conductor}</p>

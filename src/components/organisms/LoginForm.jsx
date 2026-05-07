@@ -30,10 +30,17 @@ const roleLabels = {
     parent: 'Apoderado',
 };
 
+const roleIcons = {
+    admin: <Shield size={20} className="text-purple-400" />,
+    driver: <Bus size={20} className="text-blue-400" />,
+    parent: <GraduationCap size={20} className="text-emerald-400" />,
+};
+
 export const LoginForm = () => {
     const [globalError, setGlobalError] = useState('');
     const [transitionState, setTransitionState] = useState(null);
     const [transitionProgress, setTransitionProgress] = useState(0);
+    const [selectedRole, setSelectedRole] = useState(null);
     const { login } = useAuth();
     const navigate = useNavigate();
 
@@ -41,22 +48,21 @@ export const LoginForm = () => {
         resolver: zodResolver(loginSchema),
     });
 
-    const doLogin = async (email, password) => {
+    const doLogin = async (email, password, role) => {
         setGlobalError('');
+        setSelectedRole(role);
         try {
             const response = await mockApi.login(email, password);
 
-            // Phase 1: Validating
             setTransitionState('validating');
             setTransitionProgress(0);
 
-            await new Promise(r => setTimeout(r, 400));
+            await new Promise(r => setTimeout(r, 350));
             setTransitionProgress(30);
 
             await new Promise(r => setTimeout(r, 300));
-            setTransitionProgress(60);
+            setTransitionProgress(55);
 
-            // Phase 2: Auth success
             login({
                 token: response.token,
                 role: response.role,
@@ -68,78 +74,116 @@ export const LoginForm = () => {
 
             setTransitionProgress(100);
             setTransitionState('success');
-            await new Promise(r => setTimeout(r, 400));
+            await new Promise(r => setTimeout(r, 350));
 
-            // Navigate to dashboard
             navigate(roleRoutes[response.role] || '/', { replace: true });
         } catch (error) {
             setTransitionState(null);
+            setSelectedRole(null);
             setGlobalError(error.message || 'Credenciales incorrectas.');
             setTransitionProgress(0);
         }
     };
 
     const onSubmit = async (data) => {
-        await doLogin(data.email, data.password);
+        await doLogin(data.email, data.password, null);
     };
 
     const quickLogin = async (account) => {
-        const success = await doLogin(account.email, account.password);
-        if (!success) {
-            setFieldError('email', { message: 'No se pudo iniciar sesión' });
-        }
+        await doLogin(account.email, account.password, account.role);
     };
 
-    // Transition overlay
     if (transitionState) {
         return (
-            <div className="fixed inset-0 z-50 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 flex items-center justify-center">
-                {/* Background particles */}
-                <div className="absolute top-[20%] left-[20%] w-32 h-32 bg-blue-500/10 rounded-full blur-[60px] animate-pulse" />
-                <div className="absolute bottom-[20%] right-[20%] w-40 h-40 bg-purple-500/10 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '1s' }} />
+            <div className="fixed inset-0 z-50 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 flex items-center justify-center overflow-hidden">
+                {/* Animated background orbs */}
+                <div className="absolute top-0 left-1/4 w-48 h-48 sm:w-64 sm:h-64 bg-blue-500/10 rounded-full blur-[80px] sm:blur-[100px] animate-pulse" />
+                <div className="absolute bottom-0 right-1/4 w-40 h-40 sm:w-56 sm:h-56 bg-purple-500/10 rounded-full blur-[60px] sm:blur-[80px] animate-pulse" style={{ animationDelay: '0.8s' }} />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 sm:w-48 sm:h-48 bg-emerald-500/5 rounded-full blur-[60px] animate-pulse" style={{ animationDelay: '1.5s' }} />
 
-                <div className="relative z-10 flex flex-col items-center gap-8 animate-fade-in">
-                    {/* Icon with pulse ring */}
-                    <div className="relative">
-                        <div className={`absolute inset-[-16px] rounded-full border-2 transition-all duration-500 ${
+                {/* Floating particles */}
+                {[...Array(12)].map((_, i) => (
+                    <div
+                        key={i}
+                        className="absolute w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full"
+                        style={{
+                            top: `${10 + Math.random() * 80}%`,
+                            left: `${5 + Math.random() * 90}%`,
+                            background: `rgba(${59 + Math.random() * 100}, ${130 + Math.random() * 60}, 246, ${0.15 + Math.random() * 0.2})`,
+                            animation: `float ${2 + Math.random() * 4}s ease-in-out infinite`,
+                            animationDelay: `${Math.random() * 2}s`,
+                        }}
+                    />
+                ))}
+
+                {/* Subtle grid */}
+                <div className="absolute inset-0 opacity-[0.02]" style={{
+                    backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)',
+                    backgroundSize: '48px 48px',
+                }} />
+
+                <div className="relative z-10 flex flex-col items-center justify-center px-4 sm:px-0 gap-4 sm:gap-6 md:gap-8 w-full max-w-sm animate-[fadeIn_0.4s_ease-out]">
+                    {/* Icon with pulse rings */}
+                    <div className="relative flex items-center justify-center">
+                        {/* Outer pulse ring */}
+                        <div className={`absolute rounded-full transition-all duration-700 ${
                             transitionState === 'validating'
-                                ? 'border-blue-500/30 scale-100'
-                                : 'border-emerald-500/30 scale-110'
-                        }`} />
-                        <div className={`absolute inset-[-32px] rounded-full border transition-all duration-700 ${
-                            transitionState === 'validating'
-                                ? 'border-blue-500/10 scale-75 opacity-0'
-                                : 'border-emerald-500/10 scale-100 opacity-100'
+                                ? 'w-[72px] h-[72px] sm:w-[96px] sm:h-[96px] border-2 border-blue-500/20 scale-100'
+                                : 'w-[80px] h-[80px] sm:w-[112px] sm:h-[112px] border-2 border-emerald-500/20 scale-100'
                         }`} />
 
-                        <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 ${
+                        {/* Inner pulse ring */}
+                        <div className={`absolute rounded-full border transition-all duration-500 ${
+                            transitionState === 'validating'
+                                ? 'w-[64px] h-[64px] sm:w-[80px] sm:h-[80px] border-blue-500/10 scale-100'
+                                : 'w-[72px] h-[72px] sm:w-[96px] sm:h-[96px] border-emerald-500/10 scale-100 opacity-0'
+                        }`} />
+
+                        {/* Main circle */}
+                        <div className={`w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all duration-500 ${
                             transitionState === 'validating'
                                 ? 'bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-500/30'
                                 : 'bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/30'
                         }`}>
                             {transitionState === 'validating' ? (
-                                <Loader2 size={32} className="text-white animate-spin" />
+                                <Loader2 size={24} className="sm:w-7 sm:h-7 md:w-8 md:h-8 text-white animate-spin" />
                             ) : (
-                                <CheckCircle2 size={32} className="text-white animate-[scaleIn_0.3s_ease-out]" />
+                                <CheckCircle2 size={24} className="sm:w-7 sm:h-7 md:w-8 md:h-8 text-white animate-[scaleIn_0.3s_ease-out]" />
                             )}
                         </div>
                     </div>
 
-                    {/* Text */}
-                    <div className="text-center space-y-2">
-                        <h2 className="text-xl font-bold text-white">
+                    {/* Role badge */}
+                    {selectedRole && (
+                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border animate-[scaleIn_0.3s_ease-out] ${
+                            transitionState === 'validating'
+                                ? 'bg-blue-500/10 border-blue-500/20'
+                                : 'bg-emerald-500/10 border-emerald-500/20'
+                        }`}>
+                            {roleIcons[selectedRole]}
+                            <span className={`text-xs font-semibold ${
+                                transitionState === 'validating' ? 'text-blue-300' : 'text-emerald-300'
+                            }`}>
+                                {roleLabels[selectedRole]}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Text - responsive sizing */}
+                    <div className="text-center space-y-1.5 px-4">
+                        <h2 className="text-lg sm:text-xl font-bold text-white leading-tight">
                             {transitionState === 'validating' ? 'Verificando credenciales' : '¡Bienvenido!'}
                         </h2>
-                        <p className="text-slate-400 text-sm">
+                        <p className="text-slate-400 text-xs sm:text-sm leading-snug">
                             {transitionState === 'validating'
                                 ? 'Validando acceso al sistema...'
-                                : `Acceso concedido — Panel de ${roleLabels[transitionState === 'success' ? Object.keys(roleRoutes).find(k => true) : 'admin']}`
+                                : `Acceso concedido — Panel de ${roleLabels[selectedRole] || 'Administrador'}`
                             }
                         </p>
                     </div>
 
                     {/* Progress bar */}
-                    <div className="w-56 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div className="w-44 sm:w-56 md:w-64 h-1.5 bg-white/5 rounded-full overflow-hidden">
                         <div
                             className={`h-full rounded-full transition-all duration-500 ease-out ${
                                 transitionState === 'validating'
@@ -152,12 +196,29 @@ export const LoginForm = () => {
 
                     {/* Loading dots */}
                     {transitionState === 'validating' && (
-                        <div className="flex gap-1.5 mt-2">
+                        <div className="flex gap-1.5">
                             {[0, 1, 2].map(i => (
                                 <div
                                     key={i}
-                                    className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
+                                    className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"
                                     style={{ animationDelay: `${i * 0.15}s` }}
+                                />
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Sparkle on success */}
+                    {transitionState === 'success' && (
+                        <div className="relative">
+                            {[...Array(6)].map((_, i) => (
+                                <div
+                                    key={i}
+                                    className="absolute w-1 h-1 bg-emerald-400 rounded-full"
+                                    style={{
+                                        top: `${50 + Math.cos(i * 60 * Math.PI / 180) * 40}%`,
+                                        left: `${50 + Math.sin(i * 60 * Math.PI / 180) * 40}%`,
+                                        animation: `scaleIn 0.5s ease-out ${i * 0.08}s both`,
+                                    }}
                                 />
                             ))}
                         </div>
@@ -178,13 +239,14 @@ export const LoginForm = () => {
             {/* Demo Quick Login */}
             <div className="mb-6 space-y-2">
                 <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2">Acceso rápido demo</p>
-                {DEMO_ACCOUNTS.map((account) => (
+                {DEMO_ACCOUNTS.map((account, idx) => (
                     <button
                         key={account.role}
                         type="button"
                         disabled={isSubmitting}
                         onClick={() => quickLogin(account)}
                         className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${account.bg}`}
+                        style={{ animationDelay: `${idx * 0.1}s` }}
                     >
                         <div className={`p-2 rounded-lg ${account.color} shrink-0`}>{account.icon}</div>
                         <div className="text-left flex-1 min-w-0">
