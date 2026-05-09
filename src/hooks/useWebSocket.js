@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Client } from '@stomp/stompjs';
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:15674/ws';
+const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8081/ws';
 const RABBITMQ_USER = import.meta.env.VITE_RABBITMQ_USER || 'guest';
 const RABBITMQ_PASS = import.meta.env.VITE_RABBITMQ_PASS || 'guest';
 

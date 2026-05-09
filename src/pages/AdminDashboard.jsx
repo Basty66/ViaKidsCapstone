@@ -6,7 +6,7 @@ import { StatCard } from '../components/ui/StatCard';
 import { useBuses } from '../hooks/useBuses';
 import { useStudents } from '../hooks/useStudents';
 import { attendanceService } from '../services/attendanceService';
-import { mockApi } from '../services/api';
+import { apiService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
@@ -36,7 +36,7 @@ export const AdminDashboard = () => {
 
     useEffect(() => {
         attendanceService.getTodaySummary().then(setAttendanceSummary);
-        mockApi.getNotifications().then(setNotifications);
+        apiService.getNotifications().then(setNotifications).catch(() => {});
     }, []);
 
     useEffect(() => {
@@ -219,8 +219,8 @@ export const AdminDashboard = () => {
                                 {notifications.slice(0, 3).map((notif) => (
                                     <div key={notif.id} className={`p-3 rounded-xl border transition-all ${notif.leido ? 'bg-slate-900/30 border-white/5' : 'bg-blue-500/5 border-blue-500/20'}`}>
                                         <div className="flex items-start gap-3">
-                                            <div className={`p-2 rounded-lg shrink-0 ${notif.tipo === 'Alerta' ? 'bg-amber-500/20 text-amber-400' : notif.tipo === 'Urgente' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                                                {notif.tipo === 'Urgente' ? <AlertTriangle size={14} /> : <Bell size={14} />}
+                                            <div className={`p-2 rounded-lg shrink-0 ${notif.tipo === 'ALERTA' || notif.tipo === 'Alerta' ? 'bg-amber-500/20 text-amber-400' : notif.tipo === 'URGENTE' || notif.tipo === 'Urgente' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                                                {notif.tipo === 'URGENTE' || notif.tipo === 'Urgente' ? <AlertTriangle size={14} /> : <Bell size={14} />}
                                             </div>
                                             <div className="min-w-0 flex-1">
                                                 <p className="text-white text-sm font-medium truncate">{notif.mensaje}</p>

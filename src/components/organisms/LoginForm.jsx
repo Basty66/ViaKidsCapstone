@@ -5,18 +5,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { Bus, Shield, GraduationCap, Mail, Lock, Loader2, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Bus, Shield, GraduationCap, Mail, Lock, Loader2, CheckCircle2 } from 'lucide-react';
 
 const loginSchema = z.object({
     email: z.string().min(1, 'El correo es obligatorio').email('Formato de correo inválido'),
     password: z.string().min(1, 'La contraseña es obligatoria').min(6, 'Mínimo 6 caracteres'),
 });
-
-const DEMO_ACCOUNTS = [
-    { email: 'admin@viakids.cl', password: '123456', role: 'admin', name: 'Administrador', fullName: 'Admin ViaKids', icon: <Shield size={16} />, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20', desc: 'Panel de control total' },
-    { email: 'conductor@viakids.cl', password: '123456', role: 'driver', name: 'Conductor', fullName: 'Juan Pérez', icon: <Bus size={16} />, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20', desc: 'Rutas y asistencia' },
-    { email: 'apoderado@viakids.cl', password: '123456', role: 'parent', name: 'Apoderado', fullName: 'Carlos Ruiz', icon: <GraduationCap size={16} />, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20', desc: 'Seguimiento del alumno' },
-];
 
 const roleRoutes = {
     admin: '/admin',
@@ -88,10 +82,6 @@ export const LoginForm = () => {
 
     const onSubmit = async (data) => {
         await doLogin(data.email, data.password, null);
-    };
-
-    const quickLogin = async (account) => {
-        await doLogin(account.email, account.password, account.role);
     };
 
     if (transitionState) {
@@ -237,35 +227,7 @@ export const LoginForm = () => {
                 </div>
             )}
 
-            {/* Demo Quick Login */}
-            <div className="mb-6 space-y-2">
-                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2">Acceso rápido demo</p>
-                {DEMO_ACCOUNTS.map((account, idx) => (
-                    <button
-                        key={account.role}
-                        type="button"
-                        disabled={isSubmitting}
-                        onClick={() => quickLogin(account)}
-                        className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${account.bg}`}
-                        style={{ animationDelay: `${idx * 0.1}s` }}
-                    >
-                        <div className={`p-2 rounded-lg ${account.color} shrink-0`}>{account.icon}</div>
-                        <div className="text-left flex-1 min-w-0">
-                            <p className={`text-sm font-bold ${account.color}`}>{account.name}</p>
-                            <p className="text-xs text-slate-400">{account.desc}</p>
-                        </div>
-                        <div className="text-slate-400 shrink-0">
-                            <ArrowRight size={16} />
-                        </div>
-                    </button>
-                ))}
-            </div>
 
-            <div className="flex items-center gap-2 mb-5">
-                <div className="flex-1 h-px bg-slate-200" />
-                <span className="text-xs text-slate-400 font-medium">o ingresa manualmente</span>
-                <div className="flex-1 h-px bg-slate-200" />
-            </div>
 
             <div className="animate-[slideInUp_0.6s_ease-out_0.2s_forwards] opacity-0">
                 <div className="relative">

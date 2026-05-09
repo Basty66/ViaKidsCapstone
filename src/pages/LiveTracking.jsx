@@ -68,8 +68,8 @@ export const LiveTracking = () => {
                         center={mapCenter}
                         zoom={13}
                         markers={mapMarkers}
-                        height="500px"
-                        className="md:h-[550px] lg:h-[600px]"
+                        height="350px"
+                        className="sm:h-[450px] md:h-[550px] lg:h-[600px]"
                     />
                     <div className="p-4 bg-slate-900/50 flex flex-wrap items-center gap-4 text-sm">
                         <div className="flex items-center gap-2 text-slate-300"><Clock size={14} className="text-blue-400" /> Actualización cada 5s</div>

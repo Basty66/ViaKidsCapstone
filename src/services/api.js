@@ -18,6 +18,7 @@ export const apiService = {
     updateStudent: (id, data) => api.put(`/students/${id}`, data).then(r => r.data),
     deleteStudent: (id) => api.delete(`/students/${id}`).then(r => r.data),
     getStudentQR: (id) => api.get(`/students/${id}/qr`).then(r => r.data),
+    getStudentsByParent: (parentId) => api.get(`/students/by-parent/${parentId}`).then(r => r.data),
 
     getBuses: () => api.get('/buses').then(r => r.data),
     getBus: (id) => api.get(`/buses/${id}`).then(r => r.data),
@@ -42,9 +43,13 @@ export const apiService = {
     getNotifications: () => api.get('/notifications').then(r => r.data),
     createNotification: (data) => api.post('/notifications', data).then(r => r.data),
     markNotificationRead: (id) => api.put(`/notifications/${id}/read`).then(r => r.data),
+    getPresets: () => api.get('/notifications/presets').then(r => r.data),
+    sendPreset: (data) => api.post('/notifications/preset', data).then(r => r.data),
 
     getIncidents: () => api.get('/incidents').then(r => r.data),
     createIncident: (data) => api.post('/incidents', data).then(r => r.data),
+
+    getAttendanceSummaryToday: () => api.get('/attendance/summary/today').then(r => r.data),
 
     getAttendanceReport: (filters = {}) => {
         const params = new URLSearchParams(filters).toString();

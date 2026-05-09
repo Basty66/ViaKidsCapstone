@@ -1,6 +1,6 @@
 export const StatCard = ({ label, value, icon, color = 'text-white', bg = 'bg-slate-500/20', trend, subtitle, onClick }) => {
     const Card = (
-        <div className={`bg-white/5 border border-white/10 p-5 rounded-2xl backdrop-blur-md transition-all duration-300 relative overflow-hidden group ${onClick ? 'hover:bg-white/10 cursor-pointer hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/5 active:scale-[0.98]' : 'card-hover'}`}>
+        <div className={`bg-white/5 border border-white/10 p-4 md:p-5 rounded-2xl backdrop-blur-md transition-all duration-300 relative overflow-hidden group ${onClick ? 'hover:bg-white/10 cursor-pointer hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/5 active:scale-[0.98]' : 'card-hover'}`}>
             {/* Shimmer effect on hover */}
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 shimmer-line" />
 

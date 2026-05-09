@@ -1,12 +1,14 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { DashboardLayout } from '../components/templates/DashboardLayout';
-import { MapPin, Bus, Bell, QrCode, Clock, CheckCircle, AlertTriangle, Navigation, Phone, User, GraduationCap, Shield, Heart, Map, Camera, Maximize2, ScanLine } from 'lucide-react';
+import { MapPin, Bus, Bell, QrCode, Clock, CheckCircle, AlertTriangle, Navigation, Phone, User, GraduationCap, Shield, Heart, Map, Maximize2, ScanLine } from 'lucide-react';
 import { BusMap } from '../components/ui/BusMap';
 import { QRCodeGenerator } from '../components/ui/QRCodeGenerator';
 import { Modal } from '../components/ui/Modal';
 import { StatCard } from '../components/ui/StatCard';
 import { useToast } from '../context/ToastContext';
-import { mockApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { apiService } from '../services/api';
+import { useWebSocket } from '../hooks/useWebSocket';
 import { attendanceService } from '../services/attendanceService';
 
 const statusConfig = {
@@ -32,28 +34,82 @@ export const ParentDashboard = ({ tab }) => {
     const [isQRFULLScreen, setIsQRFULLScreen] = useState(false);
     const [qrSize, setQrSize] = useState(250);
     const qrContainerRef = useRef(null);
+    const studentRef = useRef(null);
     const [attendanceHistory, setAttendanceHistory] = useState([]);
     const [showEmergency, setShowEmergency] = useState(false);
     const [activeSection, setActiveSection] = useState('status');
+    const { user } = useAuth();
     const toast = useToast();
 
-    useEffect(() => {
-        mockApi.getStudents().then(students => {
-            const myStudent = students[0];
-            setStudent(myStudent);
-            attendanceService.getStudentStatus(myStudent.id).then(setStudentStatus);
-            attendanceService.getByStudent(myStudent.id).then(setAttendanceHistory);
-        });
-        mockApi.getNotifications().then(setNotifications);
+    const { connected, publish } = useWebSocket({
+        onNotification: (data) => {
+            const targetRoles = (data.targetRoles || '').split(',');
+            if (!data.targetRoles || targetRoles.includes('PARENT') || targetRoles.includes('ALL')) {
+                setNotifications(prev => [{
+                    id: data.id || Date.now(),
+                    fecha: 'Justo ahora',
+                    tipo: data.tipo || 'INFO',
+                    mensaje: data.mensaje || data.message || JSON.stringify(data),
+                    ruta: data.ruta || 'Sistema',
+                    senderName: data.senderName,
+                    senderRole: data.senderRole,
+                    leido: false,
+                }, ...prev]);
+            }
+        },
+    });
 
+    const loadStudentData = (studentData) => {
+        studentRef.current = studentData;
+        setStudent(studentData);
+        attendanceService.getStudentStatus(studentData.id).then(setStudentStatus);
+        attendanceService.getByStudent(studentData.id).then(setAttendanceHistory);
+    };
+
+    useEffect(() => {
+        const parentId = user?.id;
+        if (parentId) {
+            apiService.getStudentsByParent(parentId).then(students => {
+                if (students && students.length > 0) loadStudentData(students[0]);
+            }).catch(() => {
+                apiService.getStudents().then(students => {
+                    const myStudent = students.find(s =>
+                        s.apoderado?.toLowerCase().includes(user?.name?.toLowerCase().split(' ')[0] || '')
+                    ) || students[0];
+                    if (myStudent) loadStudentData(myStudent);
+                }).catch(() => {});
+            });
+        } else {
+            apiService.getStudents().then(students => {
+                const userNombre = user?.name?.toLowerCase() || '';
+                const myStudent = students.find(s =>
+                    s.apoderado?.toLowerCase().includes(userNombre) ||
+                    s.apoderado?.toLowerCase().includes(userNombre.split(' ')[0])
+                ) || students[0];
+                if (myStudent) loadStudentData(myStudent);
+            }).catch(() => {});
+        }
+        apiService.getNotifications().then(list => {
+            const filtered = list.filter(n => {
+                const roles = (n.targetRoles || '').split(',');
+                return !n.targetRoles || roles.includes('PARENT') || roles.includes('ALL');
+            });
+            setNotifications(filtered);
+        }).catch(() => {});
+
+        // Real bus location polling from backend
         const busInterval = setInterval(() => {
-            setBusLocation(prev => ({
-                lat: (prev?.lat || -33.4489) + (Math.random() - 0.5) * 0.002,
-                lng: (prev?.lng || -70.6693) + (Math.random() - 0.5) * 0.002,
-            }));
-        }, 5000);
+            const currentStudent = studentRef.current;
+            if (currentStudent?.busId) {
+                apiService.getBus(currentStudent.busId).then(bus => {
+                    if (bus.lat && bus.lng) {
+                        setBusLocation({ lat: bus.lat, lng: bus.lng });
+                    }
+                }).catch(() => {});
+            }
+        }, 10000);
         return () => clearInterval(busInterval);
-    }, []);
+    }, [user?.name]);
 
     const handleEmergencyCall = () => {
         toast.warning('Contactando al conductor...', 3000);
@@ -293,12 +349,12 @@ export const ParentDashboard = ({ tab }) => {
                         <div className="space-y-2 md:space-y-3">
                             {attendanceHistory.slice(0, 5).map((record, i) => (
                                 <div key={record.id} className="flex items-center justify-between bg-slate-900/40 p-3 md:p-4 rounded-xl border border-white/5 hover:border-white/10 transition-all animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
-                                    <div className="flex items-center gap-2 md:gap-3 min-w-0">
-                                        <div className={`p-1.5 md:p-2 rounded-lg shrink-0 ${record.action === 'boarded' ? 'bg-blue-500/20 text-blue-400' : record.action === 'disembarked' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
-                                            {record.action === 'boarded' ? <CheckCircle size={14} /> : record.action === 'disembarked' ? <MapPin size={14} /> : <AlertTriangle size={14} />}
-                                        </div>
+                                        <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                                            <div className={`p-1.5 md:p-2 rounded-lg shrink-0 ${['boarded', 'BOARDED'].includes(record.action) ? 'bg-blue-500/20 text-blue-400' : ['disembarked', 'DISEMBARKED'].includes(record.action) ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+                                                {['boarded', 'BOARDED'].includes(record.action) ? <CheckCircle size={14} /> : ['disembarked', 'DISEMBARKED'].includes(record.action) ? <MapPin size={14} /> : <AlertTriangle size={14} />}
+                                            </div>
                                         <div className="min-w-0">
-                                            <p className="text-white text-xs md:text-sm font-medium">{record.action === 'boarded' ? 'Abordó' : record.action === 'disembarked' ? 'Entregado' : 'Ausente'}</p>
+                                            <p className="text-white text-xs md:text-sm font-medium">{['boarded', 'BOARDED'].includes(record.action) ? 'Abordó' : ['disembarked', 'DISEMBARKED'].includes(record.action) ? 'Entregado' : 'Ausente'}</p>
                                             <p className="text-slate-500 text-[10px] md:text-xs truncate">{record.route} — {record.busPatente}</p>
                                         </div>
                                     </div>
@@ -322,8 +378,8 @@ export const ParentDashboard = ({ tab }) => {
                             {notifications.slice(0, 3).map((notif) => (
                                 <div key={notif.id} className={`p-3 md:p-4 rounded-xl border transition-all ${notif.leido ? 'bg-slate-900/30 border-white/5' : 'bg-blue-500/5 border-blue-500/20'}`}>
                                     <div className="flex items-start gap-2 md:gap-3">
-                                        <div className={`p-1.5 md:p-2 rounded-lg shrink-0 ${notif.tipo === 'Alerta' ? 'bg-amber-500/20 text-amber-400' : notif.tipo === 'Urgente' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                                            {notif.tipo === 'Urgente' ? <AlertTriangle size={14} /> : <Bell size={14} />}
+                                        <div className={`p-1.5 md:p-2 rounded-lg shrink-0 ${['ALERTA', 'Alerta'].includes(notif.tipo) ? 'bg-amber-500/20 text-amber-400' : ['URGENTE', 'Urgente'].includes(notif.tipo) ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                                            {['URGENTE', 'Urgente'].includes(notif.tipo) ? <AlertTriangle size={14} /> : <Bell size={14} />}
                                         </div>
                                         <div className="min-w-0 flex-1">
                                             <p className="text-white text-xs md:text-sm">{notif.mensaje}</p>

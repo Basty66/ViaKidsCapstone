@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { Camera, CameraOff, RefreshCw, X, QrCode, Lock, Smartphone } from 'lucide-react';
+import { Camera, CameraOff, RefreshCw, X, QrCode, Lock, Smartphone, Upload } from 'lucide-react';
 
 export const QRScanner = ({ onScan, onError, active = true }) => {
     const [scanning, setScanning] = useState(false);
@@ -10,6 +10,8 @@ export const QRScanner = ({ onScan, onError, active = true }) => {
     const [cameras, setCameras] = useState([]);
     const [selectedCamera, setSelectedCamera] = useState(null);
     const [requestingPermission, setRequestingPermission] = useState(false);
+    const [scanningFile, setScanningFile] = useState(false);
+    const fileInputRef = useRef(null);
     const scannerRef = useRef(null);
     const containerIdRef = useRef('qr-reader-' + Math.random().toString(36).slice(2, 8));
 
@@ -81,9 +83,10 @@ export const QRScanner = ({ onScan, onError, active = true }) => {
             const html5QrCode = new Html5Qrcode(containerIdRef.current);
             scannerRef.current = html5QrCode;
 
+            const qrSize = Math.min(window.innerWidth - 64, 250);
             const config = {
                 fps: 15,
-                qrbox: { width: 250, height: 250 },
+                qrbox: { width: qrSize, height: qrSize },
                 aspectRatio: 1.0,
                 disableFlip: false,
             };
@@ -93,7 +96,7 @@ export const QRScanner = ({ onScan, onError, active = true }) => {
                     selectedCamera.id,
                     {
                         fps: 15,
-                        qrbox: { width: 250, height: 250 },
+                        qrbox: { width: qrSize, height: qrSize },
                         aspectRatio: 1.0,
                     },
                     (decodedText) => {
@@ -143,6 +146,30 @@ export const QRScanner = ({ onScan, onError, active = true }) => {
         }
     }, []);
 
+    const handleFileScan = useCallback(async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (scanning) await stopScanner();
+        setScanningFile(true);
+        setCameraError('');
+        const tempScanner = new Html5Qrcode(containerIdRef.current);
+        try {
+            const decodedText = await tempScanner.scanFile(file, true);
+            await tempScanner.clear();
+            try {
+                const data = JSON.parse(decodedText);
+                onScan(data);
+            } catch {
+                onScan({ raw: decodedText, id: decodedText });
+            }
+        } catch (err) {
+            setCameraError('No se pudo leer el QR de la imagen: ' + err.message);
+            try { await tempScanner.clear(); } catch {}
+        }
+        setScanningFile(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    }, [onScan, scanning, stopScanner]);
+
     const toggleScanner = useCallback(() => {
         if (scanning) {
             stopScanner();
@@ -178,7 +205,7 @@ export const QRScanner = ({ onScan, onError, active = true }) => {
             )}
 
             <div className="relative w-full max-w-sm rounded-2xl overflow-hidden border border-white/10 bg-black">
-                <div id={containerIdRef.current} style={{ minHeight: 300 }} />
+                <div id={containerIdRef.current} style={{ minHeight: 220, maxHeight: '70vw' }} />
                 {!scanning && permissionState === 'granted' && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-sm gap-4">
                         <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center animate-float">
@@ -209,12 +236,32 @@ export const QRScanner = ({ onScan, onError, active = true }) => {
                 >
                     {scanning ? <><X size={18} /> Detener</> : <><Camera size={18} /> Escanear QR</>}
                 </button>
+                <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={scanningFile}
+                    className="flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-500/20 disabled:opacity-50"
+                >
+                    <Upload size={18} /> Subir imagen
+                </button>
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileScan}
+                    className="hidden"
+                />
             </div>
 
             {scanning && (
                 <div className="flex items-center gap-2 text-slate-400 text-sm">
                     <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
                     Escaneando... Apunta la cámara al código QR
+                </div>
+            )}
+            {scanningFile && (
+                <div className="flex items-center gap-2 text-purple-400 text-sm">
+                    <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                    Leyendo QR de la imagen...
                 </div>
             )}
 

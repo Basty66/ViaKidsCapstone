@@ -1,43 +1,80 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '../components/templates/DashboardLayout';
-import { Bell, Send, AlertCircle, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Bell, Send, AlertCircle, AlertTriangle, CheckCircle2, User, Shield, Bus, GraduationCap } from 'lucide-react';
 import { useWebSocket } from '../hooks/useWebSocket';
-import { mockApi } from '../services/api';
+import { apiService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { useEffect } from 'react';
+
+const typeConfig = {
+    INFO: { icon: <Bell size={22} />, bg: 'bg-blue-500/20 text-blue-400', label: 'Info' },
+    ALERTA: { icon: <AlertTriangle size={22} />, bg: 'bg-amber-500/20 text-amber-400', label: 'Alerta' },
+    URGENTE: { icon: <AlertCircle size={22} />, bg: 'bg-red-500/20 text-red-400', label: 'Urgente' },
+};
+
+const roleIcons = {
+    ADMIN: <Shield size={14} />,
+    DRIVER: <Bus size={14} />,
+    PARENT: <GraduationCap size={14} />,
+};
 
 export const Notifications = () => {
-    const [formData, setFormData] = useState({ ruta: '', tipo: 'Info', mensaje: '' });
+    const { user } = useAuth();
+    const toast = useToast();
+    const [formData, setFormData] = useState({ ruta: '', tipo: 'INFO', mensaje: '' });
     const [historial, setHistorial] = useState([]);
     const [routes, setRoutes] = useState([]);
-    const toast = useToast();
+
+    const userRoleMap = { admin: 'ADMIN', driver: 'DRIVER', parent: 'PARENT' };
 
     const { connected, publish } = useWebSocket({
         onNotification: (data) => {
-            setHistorial(prev => [{ id: Date.now(), fecha: 'Justo ahora', tipo: data.tipo || 'Info', mensaje: data.message || JSON.stringify(data), ruta: data.ruta || 'Sistema', leido: false }, ...prev]);
+            const role = userRoleMap[user?.role] || 'PARENT';
+            const targetRoles = (data.targetRoles || '').split(',');
+            if (!data.targetRoles || targetRoles.includes(role) || targetRoles.includes('ALL')) {
+                setHistorial(prev => [{
+                    id: data.id || Date.now(),
+                    fecha: 'Justo ahora',
+                    tipo: data.tipo || 'INFO',
+                    mensaje: data.mensaje || data.message || JSON.stringify(data),
+                    ruta: data.ruta || 'Sistema',
+                    senderName: data.senderName,
+                    senderRole: data.senderRole,
+                    leido: false,
+                }, ...prev]);
+            }
         },
     });
 
     useEffect(() => {
-        mockApi.getNotifications().then(setHistorial);
-        mockApi.getRoutes().then(setRoutes);
-    }, []);
+        apiService.getNotifications().then(list => {
+            const role = userRoleMap[user?.role] || 'PARENT';
+            setHistorial(list.filter(n => {
+                const roles = (n.targetRoles || '').split(',');
+                return !n.targetRoles || roles.includes(role) || roles.includes('ALL');
+            }));
+        }).catch(() => {});
+        apiService.getRoutes().then(setRoutes).catch(() => {});
+    }, [user?.role]);
 
-    const handleSend = (e) => {
+    const handleSend = async (e) => {
         e.preventDefault();
         if (!formData.mensaje || !formData.ruta) { toast.warning('Completa todos los campos'); return; }
-
-        const nueva = { id: Date.now(), fecha: 'Justo ahora', ...formData, leido: false };
-        setHistorial([nueva, ...historial]);
-        setFormData({ ruta: '', tipo: 'Info', mensaje: '' });
-        publish('/exchange/notifications', { ...formData, timestamp: new Date().toISOString() });
-        toast.success('Notificación enviada');
-    };
-
-    const typeConfig = {
-        Info: { icon: <Bell size={22} />, bg: 'bg-blue-500/20 text-blue-400' },
-        Alerta: { icon: <AlertTriangle size={22} />, bg: 'bg-amber-500/20 text-amber-400' },
-        Urgente: { icon: <AlertCircle size={22} />, bg: 'bg-red-500/20 text-red-400' },
+        try {
+            const nueva = await apiService.createNotification({
+                mensaje: formData.mensaje,
+                tipo: formData.tipo,
+                ruta: formData.ruta,
+                senderName: user?.name || user?.role || 'Sistema',
+                senderRole: user?.role || 'ADMIN',
+            });
+            setHistorial([nueva, ...historial]);
+            setFormData({ ruta: '', tipo: 'INFO', mensaje: '' });
+            publish('/app/notifications', nueva);
+            toast.success('Notificación enviada');
+        } catch {
+            toast.error('Error al enviar notificación');
+        }
     };
 
     return (
@@ -72,9 +109,9 @@ export const Notifications = () => {
                             <div>
                                 <label className="text-xs text-slate-400 ml-1 mb-1 block">Tipo</label>
                                 <select value={formData.tipo} onChange={e => setFormData({ ...formData, tipo: e.target.value })} className="w-full bg-slate-900/50 p-3 rounded-xl text-white border border-white/10 outline-none [&>option]:bg-slate-900">
-                                    <option value="Info">Información Normal</option>
-                                    <option value="Alerta">Alerta de Retraso</option>
-                                    <option value="Urgente">Aviso Urgente</option>
+                                    <option value="INFO">Información Normal</option>
+                                    <option value="ALERTA">Alerta de Retraso</option>
+                                    <option value="URGENTE">Aviso Urgente</option>
                                 </select>
                             </div>
                             <div>
@@ -93,7 +130,7 @@ export const Notifications = () => {
                             {historial.length === 0 ? (
                                 <p className="text-slate-400 text-center py-8">Sin notificaciones</p>
                             ) : historial.map((notif) => {
-                                const config = typeConfig[notif.tipo] || typeConfig.Info;
+                                const config = typeConfig[notif.tipo] || typeConfig.INFO;
                                 return (
                                     <div key={notif.id} className={`p-4 rounded-xl border transition-all ${notif.leido ? 'bg-slate-900/30 border-white/5' : 'bg-blue-500/5 border-blue-500/20'}`}>
                                         <div className="flex items-start gap-3">
@@ -107,6 +144,15 @@ export const Notifications = () => {
                                                     <span className="text-xs text-slate-500 shrink-0">{notif.fecha}</span>
                                                 </div>
                                                 <p className="text-slate-300 text-sm mt-1">{notif.mensaje}</p>
+                                                {notif.senderName && (
+                                                    <div className="flex items-center gap-1.5 mt-2 text-[10px] text-slate-500">
+                                                        {roleIcons[notif.senderRole] || <User size={10} />}
+                                                        <span>Enviado por {notif.senderName}</span>
+                                                        {notif.presetLabel && (
+                                                            <span className="bg-white/5 px-1.5 py-0.5 rounded text-[9px]">{notif.presetLabel}</span>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
