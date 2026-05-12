@@ -31,7 +31,7 @@ const MapFixer = () => {
     return null;
 };
 
-const TileLoader = () => {
+const TileLoader = ({ onTilesLoaded }) => {
     const map = useMap();
     const timeoutRef = useRef(null);
 
@@ -40,30 +40,28 @@ const TileLoader = () => {
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
             }
-            setTilesLoadedGlobal(true);
+            onTilesLoaded();
         };
 
         map.on('load', handleLoad);
         map.whenReady(() => {
             if (map._loaded) {
                 if (timeoutRef.current) clearTimeout(timeoutRef.current);
-                setTilesLoadedGlobal(true);
+                onTilesLoaded();
             }
         });
 
         timeoutRef.current = setTimeout(() => {
-            setTilesLoadedGlobal(true);
+            onTilesLoaded();
         }, 3000);
 
         return () => {
             map.off('load', handleLoad);
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
         };
-    }, [map]);
+    }, [map, onTilesLoaded]);
     return null;
 };
-
-let setTilesLoadedGlobal = () => {};
 
 const BusMap = ({
     center = [-33.4489, -70.6693],
@@ -74,19 +72,24 @@ const BusMap = ({
     className = '',
 }) => {
     const [tilesLoaded, setTilesLoaded] = useState(false);
+    const tilesLoadedRef = useRef(false);
+
+    const handleTilesLoaded = useCallback(() => {
+        if (!tilesLoadedRef.current) {
+            tilesLoadedRef.current = true;
+            setTilesLoaded(true);
+        }
+    }, []);
 
     useEffect(() => {
-        setTilesLoadedGlobal = setTilesLoaded;
+        tilesLoadedRef.current = false;
         setTilesLoaded(false);
 
         const timeout = setTimeout(() => {
             setTilesLoaded(true);
         }, 5000);
 
-        return () => {
-            clearTimeout(timeout);
-            setTilesLoadedGlobal = () => {};
-        };
+        return () => clearTimeout(timeout);
     }, [center, zoom]);
 
     return (
@@ -103,7 +106,7 @@ const BusMap = ({
                 style={{ height: '100%', width: '100%', zIndex: 1 }}
                 zoomControl={false}
             >
-                <TileLoader />
+                <TileLoader onTilesLoaded={handleTilesLoaded} />
                 <MapFixer />
                 <TileLayer
                     attribution='&copy; <a href="https://carto.com/" class="text-blue-400">CARTO</a>'

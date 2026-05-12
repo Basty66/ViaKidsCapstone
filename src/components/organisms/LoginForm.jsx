@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,6 +29,27 @@ const roleIcons = {
     driver: <Bus size={20} className="text-blue-400" />,
     parent: <GraduationCap size={20} className="text-emerald-400" />,
 };
+
+const particles = useMemo(() =>
+    [...Array(12)].map(() => ({
+        top: `${10 + Math.random() * 80}%`,
+        left: `${5 + Math.random() * 90}%`,
+        background: `rgba(${59 + Math.random() * 100}, ${130 + Math.random() * 60}, 246, ${0.15 + Math.random() * 0.2})`,
+        animation: `float ${2 + Math.random() * 4}s ease-in-out infinite`,
+        animationDelay: `${Math.random() * 2}s`,
+    })),
+[]);
+
+const sparkles = useMemo(() =>
+    [...Array(6)].map((_, i) => {
+        const angle = i * 60 * Math.PI / 180;
+        return {
+            top: `${50 + Math.cos(angle) * 40}%`,
+            left: `${50 + Math.sin(angle) * 40}%`,
+            delay: `${i * 0.08}s`,
+        };
+    }),
+[]);
 
 export const LoginForm = () => {
     const [globalError, setGlobalError] = useState('');
@@ -93,16 +114,16 @@ export const LoginForm = () => {
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 sm:w-48 sm:h-48 bg-emerald-500/5 rounded-full blur-[60px] animate-pulse" style={{ animationDelay: '1.5s' }} />
 
                 {/* Floating particles */}
-                {[...Array(12)].map((_, i) => (
+                {particles.map((p, i) => (
                     <div
                         key={i}
                         className="absolute w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full"
                         style={{
-                            top: `${10 + Math.random() * 80}%`,
-                            left: `${5 + Math.random() * 90}%`,
-                            background: `rgba(${59 + Math.random() * 100}, ${130 + Math.random() * 60}, 246, ${0.15 + Math.random() * 0.2})`,
-                            animation: `float ${2 + Math.random() * 4}s ease-in-out infinite`,
-                            animationDelay: `${Math.random() * 2}s`,
+                            top: p.top,
+                            left: p.left,
+                            background: p.background,
+                            animation: p.animation,
+                            animationDelay: p.animationDelay,
                         }}
                     />
                 ))}
@@ -201,14 +222,14 @@ export const LoginForm = () => {
                     {/* Sparkle on success */}
                     {transitionState === 'success' && (
                         <div className="relative">
-                            {[...Array(6)].map((_, i) => (
+                            {sparkles.map((s, i) => (
                                 <div
                                     key={i}
                                     className="absolute w-1 h-1 bg-emerald-400 rounded-full"
                                     style={{
-                                        top: `${50 + Math.cos(i * 60 * Math.PI / 180) * 40}%`,
-                                        left: `${50 + Math.sin(i * 60 * Math.PI / 180) * 40}%`,
-                                        animation: `scaleIn 0.5s ease-out ${i * 0.08}s both`,
+                                        top: s.top,
+                                        left: s.left,
+                                        animation: `scaleIn 0.5s ease-out ${s.delay} both`,
                                     }}
                                 />
                             ))}
@@ -260,7 +281,7 @@ export const LoginForm = () => {
                     <input type="checkbox" className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4" />
                     Recordarme
                 </label>
-                <a href="#" className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-semibold transition-colors">¿Olvidaste tu contraseña?</a>
+                <button type="button" className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-semibold transition-colors">¿Olvidaste tu contraseña?</button>
             </div>
 
             <div className="animate-[slideInUp_0.6s_ease-out_0.5s_forwards] opacity-0">

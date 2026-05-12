@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { DashboardLayout } from '../components/templates/DashboardLayout';
 import { Modal } from '../components/ui/Modal';
 import { useUsers } from '../hooks/useUsers';
-import { Plus, Search, Edit2, Trash2, AlertCircle, Download, Users, GraduationCap, Bus } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, AlertCircle, Download, Users, GraduationCap, Bus, PauseCircle, PlayCircle } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { apiService } from '../services/api';
 import * as XLSX from 'xlsx';
@@ -180,7 +180,7 @@ export const UserManagement = () => {
                                                 <div className="flex justify-end gap-1">
                                                     <button onClick={() => handleOpenModal(user)} className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"><Edit2 size={16} /></button>
                                                     <button onClick={() => handleToggleStatus(user)} className="p-2 text-amber-400 hover:bg-amber-500/20 rounded-lg transition-colors" title={user.estado === 'Activo' ? 'Suspender' : 'Activar'}>
-                                                        <span className="text-xs font-bold">{user.estado === 'Activo' ? '⏸' : '▶'}</span>
+                                                        {user.estado === 'Activo' ? <PauseCircle size={16} /> : <PlayCircle size={16} />}
                                                     </button>
                                                     <button onClick={() => handleDelete(user.id)} className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"><Trash2 size={16} /></button>
                                                 </div>

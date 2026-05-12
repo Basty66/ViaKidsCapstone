@@ -37,7 +37,7 @@ export const SplashScreen = ({ onComplete }) => {
         const t3 = setTimeout(() => setPhase(3), 1400);
         const t4 = setTimeout(() => setPhase(4), 2200);
         const t5 = setTimeout(() => setPhase(5), 3000);
-        const t6 = setTimeout(() => onComplete(), 3600);
+        const t6 = setTimeout(() => onComplete(), 1200);
 
         return () => {
             clearTimeout(t1);

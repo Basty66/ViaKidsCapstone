@@ -23,5 +23,7 @@ export const StatCard = ({ label, value, icon, color = 'text-white', bg = 'bg-sl
             )}
         </div>
     );
-    return onClick ? <div onClick={onClick}>{Card}</div> : Card;
+    return onClick
+        ? <button onClick={onClick} type="button" className="w-full text-left">{Card}</button>
+        : Card;
 };

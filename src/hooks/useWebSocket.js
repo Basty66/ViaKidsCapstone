@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Client } from '@stomp/stompjs';
 
 const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8081/ws';
@@ -8,6 +8,12 @@ const RABBITMQ_PASS = import.meta.env.VITE_RABBITMQ_PASS || 'guest';
 export const useWebSocket = ({ onNotification, onAttendanceUpdate, onLocationUpdate } = {}) => {
     const [connected, setConnected] = useState(false);
     const [client, setClient] = useState(null);
+    const notifRef = useRef(onNotification);
+    const attendRef = useRef(onAttendanceUpdate);
+    const locRef = useRef(onLocationUpdate);
+    notifRef.current = onNotification;
+    attendRef.current = onAttendanceUpdate;
+    locRef.current = onLocationUpdate;
 
     useEffect(() => {
         const stompClient = new Client({
@@ -22,35 +28,29 @@ export const useWebSocket = ({ onNotification, onAttendanceUpdate, onLocationUpd
             onConnect: () => {
                 setConnected(true);
 
-                if (onNotification) {
-                    stompClient.subscribe('/queue/notifications', (message) => {
-                        try {
-                            onNotification(JSON.parse(message.body));
-                        } catch {
-                            onNotification({ message: message.body });
-                        }
-                    });
-                }
+                stompClient.subscribe('/queue/notifications', (message) => {
+                    const cb = notifRef.current;
+                    if (cb) {
+                        try { cb(JSON.parse(message.body)); }
+                        catch { cb({ message: message.body }); }
+                    }
+                });
 
-                if (onAttendanceUpdate) {
-                    stompClient.subscribe('/queue/attendance', (message) => {
-                        try {
-                            onAttendanceUpdate(JSON.parse(message.body));
-                        } catch {
-                            onAttendanceUpdate({ raw: message.body });
-                        }
-                    });
-                }
+                stompClient.subscribe('/queue/attendance', (message) => {
+                    const cb = attendRef.current;
+                    if (cb) {
+                        try { cb(JSON.parse(message.body)); }
+                        catch { cb({ raw: message.body }); }
+                    }
+                });
 
-                if (onLocationUpdate) {
-                    stompClient.subscribe('/queue/locations', (message) => {
-                        try {
-                            onLocationUpdate(JSON.parse(message.body));
-                        } catch {
-                            onLocationUpdate({ raw: message.body });
-                        }
-                    });
-                }
+                stompClient.subscribe('/queue/locations', (message) => {
+                    const cb = locRef.current;
+                    if (cb) {
+                        try { cb(JSON.parse(message.body)); }
+                        catch { cb({ raw: message.body }); }
+                    }
+                });
             },
             onDisconnect: () => {
                 setConnected(false);

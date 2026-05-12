@@ -5,7 +5,7 @@ export const SummaryCard = ({ title, value, icon, color }) => (
                 <p className="text-slate-400 text-sm font-medium">{title}</p>
                 <h3 className="text-3xl font-bold text-white mt-1">{value}</h3>
             </div>
-            <div className={`p-3 rounded-2xl ${color} bg-opacity-10`}>
+            <div className={`p-3 rounded-2xl ${color}`}>
                 {icon}
             </div>
         </div>

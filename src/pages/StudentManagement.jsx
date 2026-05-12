@@ -124,7 +124,7 @@ export const StudentManagement = () => {
                                                 <div className="flex justify-end gap-1">
                                                     <button onClick={() => openQRModal(student)} className="p-2 text-purple-400 hover:bg-purple-500/20 rounded-lg transition-colors" title="Ver QR"><QrCode size={16} /></button>
                                                     <button onClick={() => openEditModal(student)} className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors" title="Editar"><Edit2 size={16} /></button>
-                                                    <button onClick={() => { deleteStudent(student.id); toast.success('Estudiante eliminado'); }} className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors" title="Eliminar"><Trash2 size={16} /></button>
+                                                    <button onClick={async () => { try { await deleteStudent(student.id); toast.success('Estudiante eliminado'); } catch { toast.error('Error al eliminar estudiante'); } }} className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors" title="Eliminar"><Trash2 size={16} /></button>
                                                 </div>
                                             </td>
                                         </tr>

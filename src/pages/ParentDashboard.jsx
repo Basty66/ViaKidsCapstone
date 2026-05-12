@@ -62,9 +62,11 @@ export const ParentDashboard = ({ tab }) => {
     const loadStudentData = (studentData) => {
         studentRef.current = studentData;
         setStudent(studentData);
-        attendanceService.getStudentStatus(studentData.id).then(setStudentStatus);
-        attendanceService.getByStudent(studentData.id).then(setAttendanceHistory);
+        attendanceService.getStudentStatus(studentData.id).then(setStudentStatus).catch(() => {});
+        attendanceService.getByStudent(studentData.id).then(setAttendanceHistory).catch(() => {});
     };
+
+    useEffect(() => { studentRef.current = student; }, [student]);
 
     useEffect(() => {
         const parentId = user?.id;
@@ -109,7 +111,7 @@ export const ParentDashboard = ({ tab }) => {
             }
         }, 10000);
         return () => clearInterval(busInterval);
-    }, [user?.name]);
+    }, [user?.id]);
 
     const handleEmergencyCall = () => {
         toast.warning('Contactando al conductor...', 3000);

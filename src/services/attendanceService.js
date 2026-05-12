@@ -34,12 +34,17 @@ export const attendanceService = {
 
     scanQR: async (qrData, action = 'boarded') => {
         try {
-            const backendAction = { boarded: 'BOARDED', disembarked: 'DISEMBARKED', absent: 'ABSENT' }[action] || 'BOARDED';
-            const result = await apiService.scanQR({ qrData, action: backendAction });
+            const backendAction = { boarded: 'boarded', disembarked: 'disembarked', absent: 'absent' }[action] || 'boarded';
+            const result = await apiService.scanQR({
+                studentId: qrData.id || qrData.studentId,
+                action: backendAction,
+                busPatente: qrData.busPatente || qrData.bus || '',
+                ruta: qrData.ruta || qrData.route || '',
+            });
             return {
                 success: result.success,
                 data: result.data,
-                studentStatus: result.data?.action === 'BOARDED' ? 'En el bus' : result.data?.action === 'DISEMBARKED' ? 'Entregado' : 'Ausente',
+                studentStatus: result.data?.action === 'boarded' ? 'En el bus' : result.data?.action === 'disembarked' ? 'Entregado' : 'Ausente',
             };
         } catch {
             return new Promise(resolve => {

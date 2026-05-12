@@ -12,7 +12,7 @@ export const StudentQRViewer = () => {
     const [selectedStudent, setSelectedStudent] = useState(null);
     const toast = useToast();
 
-    const filteredStudents = students.filter(s => s.nombre.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredStudents = students.filter(s => s.nombre?.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return (
         <DashboardLayout>

@@ -35,7 +35,7 @@ export const AdminDashboard = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        attendanceService.getTodaySummary().then(setAttendanceSummary);
+        attendanceService.getTodaySummary().then(setAttendanceSummary).catch(() => {});
         apiService.getNotifications().then(setNotifications).catch(() => {});
     }, []);
 

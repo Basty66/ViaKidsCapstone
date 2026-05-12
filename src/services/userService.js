@@ -45,8 +45,10 @@ const mapFromBackend = (u) => ({
 
 export const userService = {
     getAll: async () => {
-        const data = await api.get('/users').then(r => r.data);
-        return Array.isArray(data) ? data.map(mapFromBackend) : [];
+        try {
+            const data = await api.get('/users').then(r => r.data);
+            return Array.isArray(data) ? data.map(mapFromBackend) : [];
+        } catch { return []; }
     },
 
     create: async (user) => {

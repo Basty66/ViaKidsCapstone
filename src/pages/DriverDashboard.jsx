@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { DashboardLayout } from '../components/templates/DashboardLayout';
 import { LayoutDashboard, ClipboardCheck, AlertTriangle, Play, Square, QrCode, MapPin, Clock, Bus, CheckCircle, XCircle, Send, AlertCircle, Camera, Navigation, Gauge, Phone, User, Bell, ThumbsUp, Cloud, Wrench } from 'lucide-react';
 import { QRScanner } from '../components/ui/QRScanner';
@@ -59,7 +59,7 @@ export const DriverDashboard = ({ tab }) => {
             attendanceService.getAll().then(records => {
                 const today = new Date().toISOString().split('T')[0];
                 setTodayAttendance(records.filter(r => r.timestamp.startsWith(today)));
-            });
+            }).catch(() => {});
         });
         apiService.getIncidents().then(setIncidents).catch(() => {});
         apiService.getPresets().then(setPresets).catch(() => {});
@@ -86,7 +86,7 @@ export const DriverDashboard = ({ tab }) => {
         return () => clearInterval(interval);
     }, [routeActive, routeStartTime]);
 
-    const handleScan = async (qrData) => {
+    const handleScan = useCallback(async (qrData) => {
         if (!routeActive) {
             toast.warning('Inicia la ruta primero para tomar asistencia', 3000);
             return;
@@ -98,9 +98,9 @@ export const DriverDashboard = ({ tab }) => {
             const today = new Date().toISOString().split('T')[0];
             attendanceService.getAll().then(records => {
                 setTodayAttendance(records.filter(r => r.timestamp.startsWith(today)));
-            });
+            }).catch(() => {});
         }
-    };
+    }, [routeActive, scanAction, toast]);
 
     const handleStartRoute = () => {
         setRouteActive(true);

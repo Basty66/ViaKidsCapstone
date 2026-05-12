@@ -89,6 +89,16 @@ export const DashboardLayout = ({ children }) => {
     const roleIcons = { admin: <Shield size={16} />, driver: <Bus size={16} />, parent: <Phone size={16} /> };
     const currentMenu = menuItems[role] || [];
 
+    const bestActivePath = (() => {
+        const sorted = [...currentMenu].sort((a, b) => b.path.length - a.path.length);
+        const match = sorted.find(item =>
+            location.pathname === item.path ||
+            (item.path !== '/admin' && item.path !== '/driver' && item.path !== '/parent' &&
+             location.pathname.startsWith(item.path + '/'))
+        );
+        return match?.path;
+    })();
+
     return (
         <>
         <div className="h-screen w-full bg-slate-950 flex overflow-hidden font-sans text-slate-100">
@@ -127,7 +137,7 @@ export const DashboardLayout = ({ children }) => {
                 {/* Nav */}
                 <nav className="flex-1 overflow-y-auto p-3 md:p-4 space-y-1.5">
                     {currentMenu.map((item) => {
-                        const isActive = location.pathname === item.path || (item.path !== '/admin' && item.path !== '/driver' && item.path !== '/parent' && location.pathname.startsWith(item.path));
+                        const isActive = bestActivePath === item.path;
                         return (
                             <NavLink
                                 key={item.path}
@@ -208,7 +218,7 @@ export const DashboardLayout = ({ children }) => {
                             <Menu size={22} />
                         </button>
                         <h2 className="text-xs md:text-sm text-slate-400 truncate">
-                            {currentMenu.find(item => location.pathname === item.path)?.label || roleLabels[role]}
+                            {currentMenu.find(item => bestActivePath === item.path)?.label || roleLabels[role]}
                         </h2>
                     </div>
 
