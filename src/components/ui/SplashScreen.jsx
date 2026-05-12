@@ -17,7 +17,6 @@ export const SplashScreen = ({ onComplete }) => {
         })), []);
 
     const handleSkip = useCallback(() => {
-        try { localStorage.removeItem('viakids_splash_seen') } catch(e) {}
         onComplete();
     }, [onComplete]);
 

@@ -74,15 +74,10 @@ const AppContent = ({ splashDone }) => {
     );
 };
 
-const getInitialSplash = () => {
-    try { return localStorage.getItem('viakids_splash_seen') !== 'true' } catch(e) { return true }
-};
-
 function App() {
-    const [showSplash, setShowSplash] = useState(getInitialSplash);
+    const [showSplash, setShowSplash] = useState(true);
 
     const handleSplashComplete = useCallback(() => {
-        try { localStorage.setItem('viakids_splash_seen', 'true') } catch(e) {}
         setShowSplash(false);
     }, []);
 
