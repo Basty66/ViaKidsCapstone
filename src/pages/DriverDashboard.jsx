@@ -91,15 +91,18 @@ export const DriverDashboard = ({ tab }) => {
             toast.warning('Inicia la ruta primero para tomar asistencia', 3000);
             return;
         }
-        const result = await attendanceService.scanQR(qrData, scanAction);
-        if (result.success) {
-            setLastScan({ student: qrData.nombre, action: scanAction, time: new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) });
-            toast.success(`${qrData.nombre} ${scanAction === 'boarded' ? 'abordó' : 'bajó'} del bus`);
-            const today = new Date().toISOString().split('T')[0];
-            attendanceService.getAll().then(records => {
-                setTodayAttendance(records.filter(r => r.timestamp.startsWith(today)));
-            }).catch(() => {});
-        }
+        try {
+            const result = await attendanceService.scanQR(qrData, scanAction);
+            if (result.success) {
+                const studentName = qrData.nombre || qrData.raw || 'Estudiante';
+                setLastScan({ student: studentName, action: scanAction, time: new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) });
+                toast.success(`${studentName} ${scanAction === 'boarded' ? 'abordó' : 'bajó'} del bus`);
+                const today = new Date().toISOString().split('T')[0];
+                attendanceService.getAll().then(records => {
+                    setTodayAttendance(records.filter(r => r.timestamp.startsWith(today)));
+                }).catch(() => {});
+            }
+        } catch { toast.error('Error al procesar el QR'); }
     }, [routeActive, scanAction, toast]);
 
     const handleStartRoute = () => {
@@ -413,6 +416,7 @@ export const DriverDashboard = ({ tab }) => {
                                         AlertCircle: 'text-red-400 bg-red-500/10',
                                         Cloud: 'text-slate-400 bg-slate-500/10',
                                         Wrench: 'text-purple-400 bg-purple-500/10',
+                                        Tool: 'text-purple-400 bg-purple-500/10',
                                         ThumbsUp: 'text-emerald-400 bg-emerald-500/10',
                                     };
                                     const color = iconColors[preset.icon] || 'text-blue-400 bg-blue-500/10';

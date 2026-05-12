@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Camera, RefreshCw, X } from 'lucide-react';
 
 export const useCamera = () => {
     const [permissionGranted, setPermissionGranted] = useState(null);

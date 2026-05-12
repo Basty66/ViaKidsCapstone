@@ -43,23 +43,29 @@ export const useStudents = () => {
     }, [students, searchTerm, selectedBusFilter, estadoFilter]);
 
     const addStudent = async (student) => {
-        const res = await apiService.createStudent(student);
-        const mapped = mapFromApi(res);
-        setStudents(p => [...p, mapped]);
-        return { success: true, data: mapped };
+        try {
+            const res = await apiService.createStudent(student);
+            const mapped = mapFromApi(res);
+            setStudents(p => [...p, mapped]);
+            return { success: true, data: mapped };
+        } catch { return { success: false }; }
     };
 
     const updateStudent = async (student) => {
-        const res = await apiService.updateStudent(student.id, student);
-        const mapped = mapFromApi(res);
-        setStudents(p => p.map(s => s.id === student.id ? mapped : s));
-        return { success: true, data: mapped };
+        try {
+            const res = await apiService.updateStudent(student.id, student);
+            const mapped = mapFromApi(res);
+            setStudents(p => p.map(s => s.id === student.id ? mapped : s));
+            return { success: true, data: mapped };
+        } catch { return { success: false }; }
     };
 
     const deleteStudent = async (id) => {
-        await apiService.deleteStudent(id);
-        setStudents(p => p.filter(s => s.id !== id));
-        return { success: true };
+        try {
+            await apiService.deleteStudent(id);
+            setStudents(p => p.filter(s => s.id !== id));
+            return { success: true };
+        } catch { return { success: false }; }
     };
 
     const refreshStudents = async () => {

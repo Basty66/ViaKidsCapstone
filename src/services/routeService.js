@@ -10,8 +10,10 @@ const initialRoutes = [
 
 // Funciones auxiliares para manejar el LocalStorage
 const getDb = () => {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : initialRoutes;
+    try {
+        const data = localStorage.getItem(STORAGE_KEY);
+        return data ? JSON.parse(data) : initialRoutes;
+    } catch { return initialRoutes; }
 };
 
 const saveDb = (data) => localStorage.setItem(STORAGE_KEY, JSON.stringify(data));

@@ -6,6 +6,7 @@ const mapFromApi = (r) => ({
     nombre: r.nombre,
     colegio: r.colegio,
     busId: r.busId || '',
+    busPatente: r.busPatente || '',
     horario: r.horario,
     paradas: r.paradas || 0,
 });

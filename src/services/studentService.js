@@ -7,8 +7,10 @@ const initialStudents = [
 ];
 
 const getDb = () => {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : initialStudents;
+    try {
+        const data = localStorage.getItem(STORAGE_KEY);
+        return data ? JSON.parse(data) : initialStudents;
+    } catch { return initialStudents; }
 };
 
 const saveDb = (data) => localStorage.setItem(STORAGE_KEY, JSON.stringify(data));

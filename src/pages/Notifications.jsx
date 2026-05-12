@@ -66,7 +66,7 @@ export const Notifications = () => {
                 tipo: formData.tipo,
                 ruta: formData.ruta,
                 senderName: user?.name || user?.role || 'Sistema',
-                senderRole: user?.role || 'ADMIN',
+                senderRole: (user?.role || 'ADMIN').toUpperCase(),
             });
             setHistorial([nueva, ...historial]);
             setFormData({ ruta: '', tipo: 'INFO', mensaje: '' });

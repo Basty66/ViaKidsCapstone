@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -30,26 +30,22 @@ const roleIcons = {
     parent: <GraduationCap size={20} className="text-emerald-400" />,
 };
 
-const particles = useMemo(() =>
-    [...Array(12)].map(() => ({
-        top: `${10 + Math.random() * 80}%`,
-        left: `${5 + Math.random() * 90}%`,
-        background: `rgba(${59 + Math.random() * 100}, ${130 + Math.random() * 60}, 246, ${0.15 + Math.random() * 0.2})`,
-        animation: `float ${2 + Math.random() * 4}s ease-in-out infinite`,
-        animationDelay: `${Math.random() * 2}s`,
-    })),
-[]);
+const particles = [...Array(12)].map(() => ({
+    top: `${10 + Math.random() * 80}%`,
+    left: `${5 + Math.random() * 90}%`,
+    background: `rgba(${59 + Math.random() * 100}, ${130 + Math.random() * 60}, 246, ${0.15 + Math.random() * 0.2})`,
+    animation: `float ${2 + Math.random() * 4}s ease-in-out infinite`,
+    animationDelay: `${Math.random() * 2}s`,
+}));
 
-const sparkles = useMemo(() =>
-    [...Array(6)].map((_, i) => {
-        const angle = i * 60 * Math.PI / 180;
-        return {
-            top: `${50 + Math.cos(angle) * 40}%`,
-            left: `${50 + Math.sin(angle) * 40}%`,
-            delay: `${i * 0.08}s`,
-        };
-    }),
-[]);
+const sparkles = [...Array(6)].map((_, i) => {
+    const angle = i * 60 * Math.PI / 180;
+    return {
+        top: `${50 + Math.cos(angle) * 40}%`,
+        left: `${50 + Math.sin(angle) * 40}%`,
+        delay: `${i * 0.08}s`,
+    };
+});
 
 export const LoginForm = () => {
     const [globalError, setGlobalError] = useState('');

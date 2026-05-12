@@ -7,8 +7,9 @@ const mapFromApi = (b) => ({
     conductor: b.conductor || '',
     capacidad: b.capacidad || 0,
     estado: b.estado || 'En Espera',
-    lat: b.lat,
-    lng: b.lng,
+    tiempoEstimado: b.tiempoEstimado || '--',
+    lat: b.lat || -33.4489,
+    lng: b.lng || -70.6693,
 });
 
 export const useBuses = () => {
@@ -40,23 +41,29 @@ export const useBuses = () => {
     }, [buses, filter, searchTerm]);
 
     const addBus = async (newBus) => {
-        const data = await apiService.createBus(newBus);
-        const mapped = mapFromApi(data);
-        setBuses(p => [...p, mapped]);
-        return { success: true, data: mapped };
+        try {
+            const data = await apiService.createBus(newBus);
+            const mapped = mapFromApi(data);
+            setBuses(p => [...p, mapped]);
+            return { success: true, data: mapped };
+        } catch { return { success: false }; }
     };
 
     const updateBus = async (updatedBus) => {
-        const data = await apiService.updateBus(updatedBus.id, updatedBus);
-        const mapped = mapFromApi(data);
-        setBuses(p => p.map(b => b.id === updatedBus.id ? mapped : b));
-        return { success: true, data: mapped };
+        try {
+            const data = await apiService.updateBus(updatedBus.id, updatedBus);
+            const mapped = mapFromApi(data);
+            setBuses(p => p.map(b => b.id === updatedBus.id ? mapped : b));
+            return { success: true, data: mapped };
+        } catch { return { success: false }; }
     };
 
     const deleteBus = async (id) => {
-        await apiService.deleteBus(id);
-        setBuses(p => p.filter(b => b.id !== id));
-        return { success: true };
+        try {
+            await apiService.deleteBus(id);
+            setBuses(p => p.filter(b => b.id !== id));
+            return { success: true };
+        } catch { return { success: false }; }
     };
 
     const validateForm = (data, editingId = null) => {

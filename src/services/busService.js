@@ -7,12 +7,17 @@ const initialDb = [
 ];
 
 const getDb = () => {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (!data) {
+    try {
+        const data = localStorage.getItem(STORAGE_KEY);
+        if (!data) {
+            saveDb(initialDb);
+            return initialDb;
+        }
+        return JSON.parse(data);
+    } catch {
         saveDb(initialDb);
         return initialDb;
     }
-    return JSON.parse(data);
 };
 
 const saveDb = (data) => localStorage.setItem(STORAGE_KEY, JSON.stringify(data));

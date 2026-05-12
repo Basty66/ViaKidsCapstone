@@ -1,14 +1,28 @@
 import { X } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+
+let modalCount = 0;
 
 export const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
+    const wasOpen = useRef(false);
+
     useEffect(() => {
-        if (isOpen) {
+        if (isOpen && !wasOpen.current) {
+            wasOpen.current = true;
+            modalCount++;
             document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
+        } else if (!isOpen && wasOpen.current) {
+            wasOpen.current = false;
+            modalCount--;
+            if (modalCount <= 0) document.body.style.overflow = '';
         }
-        return () => { document.body.style.overflow = ''; };
+        return () => {
+            if (wasOpen.current) {
+                wasOpen.current = false;
+                modalCount--;
+                if (modalCount <= 0) document.body.style.overflow = '';
+            }
+        };
     }, [isOpen]);
 
     if (!isOpen) return null;
