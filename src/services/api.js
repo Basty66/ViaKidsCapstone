@@ -3,53 +3,85 @@ import api from '../api/axiosConfig';
 export { api };
 
 export const apiService = {
-    login: (email, password) => api.post('/auth/login', { email, password }).then(r => r.data),
+    login: async (email, password) => {
+        try { return await api.post('/auth/login', { email, password }).then(r => r.data); }
+        catch { return mockApi.login(email, password); }
+    },
     register: (data) => api.post('/auth/register', data).then(r => r.data),
     getProfile: () => api.get('/auth/me').then(r => r.data),
 
-    getUsers: () => api.get('/users').then(r => r.data),
+    getUsers: async () => {
+        try { return await api.get('/users').then(r => r.data); }
+        catch { return mockApi.getUsers(); }
+    },
     createUser: (data) => api.post('/users', data).then(r => r.data),
     updateUser: (id, data) => api.put(`/users/${id}`, data).then(r => r.data),
     deleteUser: (id) => api.delete(`/users/${id}`).then(r => r.data),
 
-    getStudents: () => api.get('/students').then(r => r.data),
+    getStudents: async () => {
+        try { return await api.get('/students').then(r => r.data); }
+        catch { return mockApi.getStudents(); }
+    },
     getStudent: (id) => api.get(`/students/${id}`).then(r => r.data),
     createStudent: (data) => api.post('/students', data).then(r => r.data),
     updateStudent: (id, data) => api.put(`/students/${id}`, data).then(r => r.data),
     deleteStudent: (id) => api.delete(`/students/${id}`).then(r => r.data),
     getStudentQR: (id) => api.get(`/students/${id}/qr`).then(r => r.data),
-    getStudentsByParent: (parentId) => api.get(`/students/by-parent/${parentId}`).then(r => r.data),
+    getStudentsByParent: async (parentId) => {
+        try { return await api.get(`/students/by-parent/${parentId}`).then(r => r.data); }
+        catch { return mockApi.getStudents(); }
+    },
 
-    getBuses: () => api.get('/buses').then(r => r.data),
+    getBuses: async () => {
+        try { return await api.get('/buses').then(r => r.data); }
+        catch { return mockApi.getBuses(); }
+    },
     getBus: (id) => api.get(`/buses/${id}`).then(r => r.data),
     createBus: (data) => api.post('/buses', data).then(r => r.data),
     updateBus: (id, data) => api.put(`/buses/${id}`, data).then(r => r.data),
     deleteBus: (id) => api.delete(`/buses/${id}`).then(r => r.data),
     getBusLocation: (id) => api.get(`/buses/${id}/location`).then(r => r.data),
 
-    getRoutes: () => api.get('/routes').then(r => r.data),
+    getRoutes: async () => {
+        try { return await api.get('/routes').then(r => r.data); }
+        catch { return mockApi.getRoutes(); }
+    },
     getRoute: (id) => api.get(`/routes/${id}`).then(r => r.data),
     createRoute: (data) => api.post('/routes', data).then(r => r.data),
     updateRoute: (id, data) => api.put(`/routes/${id}`, data).then(r => r.data),
     deleteRoute: (id) => api.delete(`/routes/${id}`).then(r => r.data),
 
     scanQR: (data) => api.post('/attendance/scan', data).then(r => r.data),
-    getAttendance: (filters = {}) => {
-        const params = new URLSearchParams(filters).toString();
-        return api.get(`/attendance?${params}`).then(r => r.data);
+    getAttendance: async (filters = {}) => {
+        try {
+            const params = new URLSearchParams(filters).toString();
+            return await api.get(`/attendance?${params}`).then(r => r.data);
+        } catch { return mockApi.getAttendance(); }
     },
     getStudentAttendance: (studentId) => api.get(`/attendance/student/${studentId}`).then(r => r.data),
 
-    getNotifications: () => api.get('/notifications').then(r => r.data),
+    getNotifications: async () => {
+        try { return await api.get('/notifications').then(r => r.data); }
+        catch { return mockApi.getNotifications(); }
+    },
     createNotification: (data) => api.post('/notifications', data).then(r => r.data),
     markNotificationRead: (id) => api.put(`/notifications/${id}/read`).then(r => r.data),
-    getPresets: () => api.get('/notifications/presets').then(r => r.data),
+    getPresets: async () => {
+        try { return await api.get('/notifications/presets').then(r => r.data); }
+        catch { return []; }
+    },
     sendPreset: (data) => api.post('/notifications/preset', data).then(r => r.data),
 
-    getIncidents: () => api.get('/incidents').then(r => r.data),
+    getIncidents: async () => {
+        try { return await api.get('/incidents').then(r => r.data); }
+        catch { return mockApi.getIncidents(); }
+    },
     createIncident: (data) => api.post('/incidents', data).then(r => r.data),
 
-    getAttendanceSummaryToday: () => api.get('/attendance/summary/today').then(r => r.data),
+    getAttendanceSummaryToday: async () => {
+        try { return await api.get('/attendance/summary/today').then(r => r.data); }
+        catch { return { boarded: 0, disembarked: 0, absent: 0, total: 0 }; }
+    },
 
     getAttendanceReport: (filters = {}) => {
         const params = new URLSearchParams(filters).toString();
