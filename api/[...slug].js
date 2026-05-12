@@ -1,6 +1,6 @@
 const RAILWAY_API = 'https://viakidss-production.up.railway.app/api';
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   const slug = req.query.slug || [];
   const path = slug.join('/');
   const qs = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
@@ -13,8 +13,8 @@ export default async function handler(req, res) {
       headers[key] = value;
     }
   }
-  headers['x-forwarded-host'] = req.headers.host || '';
 
+  const fetch = (await import('node-fetch')).default;
   let body;
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
@@ -38,4 +38,4 @@ export default async function handler(req, res) {
   } catch (error) {
     res.status(500).json({ error: 'Proxy error', message: error.message });
   }
-}
+};
