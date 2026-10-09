@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Secretos y dependencias
+.env
+.env.*
+!.env.example

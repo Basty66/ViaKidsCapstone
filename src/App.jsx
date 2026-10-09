@@ -34,6 +34,8 @@ const ProtectedRoute = ({ children, allowedRole }) => {
     return children;
 };
 
+const roleHome = { admin: '/admin', driver: '/driver', parent: '/parent' };
+
 const AppContent = ({ splashDone }) => {
     const { user } = useAuth();
 
@@ -60,7 +62,7 @@ const AppContent = ({ splashDone }) => {
                             <Route path="/parent" element={<ProtectedRoute allowedRole="parent"><ParentDashboard /></ProtectedRoute>} />
                             <Route path="/parent/tracking" element={<ProtectedRoute allowedRole="parent"><ParentDashboard tab="tracking" /></ProtectedRoute>} />
                             <Route path="/parent/qr" element={<ProtectedRoute allowedRole="parent"><ParentDashboard tab="qr" /></ProtectedRoute>} />
-                            <Route path="*" element={<Navigate to="/" replace />} />
+                            <Route path="*" element={<Navigate to={roleHome[user?.role] || '/'} replace />} />
                         </>
                     ) : (
                         <>
